@@ -4,7 +4,7 @@ import './index.css';
 import MusicScore from "./MusicScore";
 import * as serviceWorker from './serviceWorker';
 
-ReactDOM.render(<MusicScore />, document.getElementById('root'));
+ReactDOM.render(<MusicScore scoreURL="/Beethoven_WoO80-32-Variationen-c-Moll.mei" />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

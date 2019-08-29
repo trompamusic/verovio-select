@@ -5,6 +5,7 @@ class ScorePreferences extends React.Component {
     constructor(props) {
         super(props);
 
+        // TODO: We could store settings in localStorage and retrieve them on page load
         const defaults = {
             selectNotes: true,
             selectMeasures: false
@@ -36,6 +37,7 @@ class ScorePreferences extends React.Component {
     render() {
         return (
             <div className="">
+                <span><b>Selection preferences</b></span><br/>
                 <label><input type="checkbox" onClick={this.toggleNotes} /> Select notes </label><br/>
                 <label><input type="checkbox" onClick={this.toggleMeasures} /> Select measures </label>
             </div>

@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "bootstrap": "^4.3.1",
+    "dragselect": "^1.13.1",
+    "prop-types": "latest",
     "react": "^16.9.0",
+    "react-bootstrap": "^1.0.0-beta.12",
     "react-dom": "^16.9.0",
-    "react-scripts": "3.1.1",
-    "prop-types": "latest"
+    "react-scripts": "3.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
