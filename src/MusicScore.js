@@ -5,9 +5,11 @@ import $ from 'jquery';
 import Col from 'react-bootstrap/Col'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
+import DragSelect from "dragselect/dist/DragSelect";
 
 import ScorePreferences from './ScorePreferences';
 import ScoreInput from './ScoreInput';
+import SelectionDisplay from "./SelectionDisplay";
 
 class MusicScore extends React.Component {
     constructor(props) {
@@ -43,16 +45,38 @@ class MusicScore extends React.Component {
         this.handleScoreURLChange = this.handleScoreURLChange.bind(this);
         this.handleSelectionChange = this.handleSelectionChange.bind(this);
         this.loadScoreFromUrl = this.loadScoreFromUrl.bind(this);
+        this.enableSelector = this.enableSelector.bind(this);
+    }
+
+    enableSelector() {
+        if (typeof this.state.selector !== "undefined") {
+            this.state.selector.stop();
+        }
+        let selector = new DragSelect({
+            selectables: document.querySelectorAll("g[class='note']"),
+            area: document.getElementById('musicscore-score-svg'),
+            selectedClass: 'selected',
+            onDragStartBegin: () => {
+                document.body.classList.add('s-noselect');
+            },
+            callback: (elements) => {
+                document.body.classList.remove('s-noselect');
+                this.handleSelectionChange(elements);
+            }
+        });
+        this.setState({selector: selector});
     }
 
     handleScoreURLChange(theUrl) {
         // setstate is asynchronous, use a callback
-        this.setState({url: theUrl}, () => this.loadScoreFromUrl(this.state.url));
+        this.setState({url: theUrl},
+            () => this.loadScoreFromUrl(this.state.url)
+        );
     }
 
     handleSettingsChange(settings) {
         this.setState({settings: settings}, () => {
-            // TODO: Change selector based on settings
+            this.enableSelector();
         });
     }
 
@@ -85,13 +109,14 @@ class MusicScore extends React.Component {
         return (
             <div>
                 <Container fluid={true}>
-                    <Row style={{border:"2px solid red"}}>
-                        <Col sm={4} lg={4} style={{border:"2px solid red"}}>
+                    <Row>
+                        <Col sm={3} lg={3}>
                             {this.state.showURLInput ? <ScoreInput handleSubmit={this.handleScoreURLChange}/> : null }
                             <ScorePreferences preferences={{}} settingsHandler={this.handleSettingsChange}/>
+                            <SelectionDisplay data={this.state.selection} />
                         </Col>
-                        <Col sm={8} lg={8} style={{border:"2px solid blue"}}>
-                            <div id="score" dangerouslySetInnerHTML={{__html: this.state.svg}} />
+                        <Col sm={9} lg={9}>
+                            <div id="musicscore-score-svg" dangerouslySetInnerHTML={{__html: this.state.svg}} />
                         </Col>
                     </Row>
                 </Container>
