@@ -10,6 +10,8 @@ class ScorePreferences extends React.Component {
             selectNotes: true,
             selectMeasures: false
         };
+        // TODO: Ensure that only one item is set to true here
+        //       maybe this should be a radio button instead
         this.state = Object.assign(defaults, props.preferences);
         this.toggleNotes = this.toggleNotes.bind(this);
         this.toggleMeasures = this.toggleMeasures.bind(this);
@@ -19,14 +21,18 @@ class ScorePreferences extends React.Component {
     }
 
     toggleNotes() {
+        const currentNotes = this.state.selectNotes;
         this.setState({
-            selectNotes: !this.props.selectNotes
+            selectNotes: !currentNotes,
+            selectMeasures: currentNotes
         }, () => this.sendSettings());
     }
 
     toggleMeasures() {
+        const currentMeasures = this.state.selectMeasures;
         this.setState({
-            selectMeasures: !this.props.selectMeasures
+            selectMeasures: !currentMeasures,
+            selectNotes: currentMeasures
         }, () => this.sendSettings());
     }
 
@@ -38,8 +44,8 @@ class ScorePreferences extends React.Component {
         return (
             <div className="">
                 <span><b>Selection preferences</b></span><br/>
-                <label><input type="checkbox" onClick={this.toggleNotes} /> Select notes </label><br/>
-                <label><input type="checkbox" onClick={this.toggleMeasures} /> Select measures </label>
+                <label><input type="checkbox" checked={this.state.selectNotes} onChange={this.toggleNotes} /> Select notes </label><br/>
+                <label><input type="checkbox" checked={this.state.selectMeasures} onChange={this.toggleMeasures} /> Select measures </label>
             </div>
         );
     }
