@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/react-hooks": "^3.0.1",
+    "apollo-boost": "^0.4.4",
     "bootstrap": "^4.3.1",
     "dragselect": "^1.13.1",
+    "graphql": "^14.5.4",
     "prop-types": "latest",
     "react": "^16.9.0",
     "react-bootstrap": "^1.0.0-beta.12",
@@ -33,6 +36,8 @@
     ]
   },
   "devDependencies": {
+    "babel-plugin-graphql-tag": "^2.5.0",
+    "graphql-tag": "^2.10.1",
     "jquery": "^3.4.1"
   }
 }
