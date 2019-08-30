@@ -11,7 +11,11 @@ import ScorePreferences from './ScorePreferences';
 import ScoreInput from './ScoreInput';
 import SelectionDisplay from "./SelectionDisplay";
 
+const SCORE_UNLOADED = "unloaded";
+const SCORE_LOADED = "loaded";
+
 class MusicScore extends React.Component {
+
     constructor(props) {
         super(props);
 
@@ -34,12 +38,9 @@ class MusicScore extends React.Component {
             settings: {},
             scoreURL: scoreURL,
             svg: svg,
-            showURLInput: showURLInput
+            showURLInput: showURLInput,
+            scoreLoaded: SCORE_UNLOADED
         };
-
-        if (scoreURL !== "") {
-            this.loadScoreFromUrl(scoreURL);
-        }
 
         this.handleSettingsChange = this.handleSettingsChange.bind(this);
         this.handleScoreURLChange = this.handleScoreURLChange.bind(this);
@@ -48,7 +49,17 @@ class MusicScore extends React.Component {
         this.enableSelector = this.enableSelector.bind(this);
     }
 
+    componentDidMount() {
+        if (this.state.scoreURL !== "") {
+            this.loadScoreFromUrl(this.state.scoreURL);
+        }
+    }
+
     enableSelector() {
+        if (this.state.scoreLoaded === SCORE_UNLOADED) {
+            // Can't load the selector if the score isn't rendered yet
+            return;
+        }
         if (typeof this.state.selector !== "undefined") {
             this.state.selector.stop();
         }
@@ -89,19 +100,23 @@ class MusicScore extends React.Component {
     }
 
     loadScoreFromUrl(url) {
-        $.ajax({
-            url: url,
-            dataType: "text",
-            success: (data) => {
-                // TODO: Even if this succeeds, we need to verify that it's actual XML/MEI
-                //  need to work out how to validate the content or catch error from verovio
-                const vrvToolkit = new window.verovio.toolkit();
-                const svg = vrvToolkit.renderData(data, {svgViewBox: true});
-                this.setState({svg: svg});
-            },
-            error: (XMLHttpRequest, textStatus, errorThrown) => {
-                console.debug(textStatus);
-            }
+        this.setState({scoreLoaded: SCORE_UNLOADED}, () => {
+            $.ajax({
+                url: url,
+                dataType: "text",
+                success: (data) => {
+                    // TODO: Even if this succeeds, we need to verify that it's actual XML/MEI
+                    //  need to work out how to validate the content or catch error from verovio
+                    const vrvToolkit = new window.verovio.toolkit();
+                    const svg = vrvToolkit.renderData(data, {svgViewBox: true});
+                    this.setState({svg: svg, scoreLoaded: SCORE_LOADED}, () => {
+                        this.enableSelector();
+                    });
+                },
+                error: (XMLHttpRequest, textStatus, errorThrown) => {
+                    console.debug(textStatus);
+                }
+            });
         });
     }
 
