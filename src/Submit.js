@@ -1,27 +1,13 @@
 import gql from 'graphql-tag';
-import {GRAPHQL_HOST} from "./settings";
+import {GRAPHQL_HOST, APP_LOCATION} from "./settings";
 import ApolloClient from 'apollo-boost';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000',
+  uri: GRAPHQL_HOST,
 });
 
-// mutation {
-//   CreateAnnotation (
-//     target: "http://localhost:4000/uuid#media-fragment"
-//     creator: "URL or text"
-//     created: {
-//       year: 2019, month: 8, day:5, minute:10, hour: 14, second:0
-//     }
-//     motivation: [bookmarking, describing]
-//     body: "Any URL or Text"
-//   ) {
-//     identifier
-//   }
-// }
-
 const CREATE_ANNOTATION_URL_BODY = gql`
-mutation CreateAnnotation($target: [URL], $creator: URL!, $created: String!, $motivation: [AnnotationMotivation], $body: URL )  {
+mutation CreateAnnotation($target: [URL], $creator: URL!, $created: String!, $motivation: [URL], $body: [URL] )  {
   CreateAnnotation (
     target: $target
     creator: $creator
@@ -35,13 +21,11 @@ mutation CreateAnnotation($target: [URL], $creator: URL!, $created: String!, $mo
 `;
 
 const CREATE_ANNOTATION_NO_BODY = gql`
-    mutation CreateAnnotation($target: [URL], $creator: URL!, $motivation: [AnnotationMotivation])  {
+    mutation CreateAnnotation($target: [URL], $creator: URL!, $created: String!, $motivation: [URL])  {
         CreateAnnotation (
             target: $target
             creator: $creator
-            created: {
-                year: 2019, month: 8, day:5, minute:10, hour: 14, second:0
-            }
+            created: $created
             motivation: $motivation
         ) {
             identifier
@@ -62,29 +46,58 @@ const CREATE_TEXTUAL_BODY = gql`
     }
 `;
 
-const ADD_ANNOTATION_TEXTUAL_BODY = gql`
-    mutation AddAnnotationTextualBody($annotationId: ID!, $textualBodyId: ID!) {
-        AddAnnotationTextualBody (
-            from: {identifier: $annotationId}
-            to: {identifier: $textualBodyId}
-        ) {
-            to {
-                type
-            }
-        }
-    }
-    `;
-
-
 function submit_textual_body(params) {
     client.mutate({
+        mutation: CREATE_TEXTUAL_BODY,
+        variables: {
+            body: params.textualBody,
+        }
+    }).then(result => {
+        const textIdentifier = result.data.CreateTextualBody.identifier;
+
+        // TODO: super hacky, needs to know its mountpoint
+        const body = APP_LOCATION + textIdentifier;
+        let vars = {
+            target: params.target,
+            creator: 'Dummy creator',
+            created: params.created,
+            body: [body],
+            motivation: [MOTIVATION_URIS.describing]
+        };
+        return client.mutate({
+            mutation: CREATE_ANNOTATION_URL_BODY,
+            variables: vars
+        })
+    }).then(
+        result => console.log(result)
+    ).catch(result => console.log(result));
+}
+
+function submit_uri_body(params) {
+    // TODO: No check that params.body is actually an array
+    const vars = {
+        target: params.target,
+        creator: 'Dummy creator',
+        created: params.created,
+        body: params.body,
+        motivation: [MOTIVATION_URIS.linking]
+    };
+    client.mutate({
         mutation: CREATE_ANNOTATION_URL_BODY,
+        variables: vars
+    }).then(
+        result => console.log(result)
+    ).catch(result => console.log(result));
+}
+
+function submit_highlight(params) {
+    client.mutate({
+        mutation: CREATE_ANNOTATION_NO_BODY,
         variables: {
             target: params.target,
-            creator: 'creator',
-            created: created,
-            body: 'body',
-            motivation: ['bookmarking']
+            creator: 'Dummy creator',
+            created: params.created,
+            motivation: [MOTIVATION_URIS.highlighting]
         }
     }).then(result => console.log(result));
 }
@@ -103,12 +116,17 @@ const MOTIVATION_URIS = {
  */
 export function submit(params) {
     const now = new Date(Date.now());
-    let created = now.toISOString();
+    params.created = now.toISOString();;
 
     if (params.textualBody !== undefined) {
+        // Text description
         submit_textual_body(params);
-    } else if (params.body) {
+    } else if (params.body !== undefined) {
+        // Link to external description
         submit_uri_body(params);
+    } else {
+        // highlight
+        submit_highlight(params);
     }
 
 
