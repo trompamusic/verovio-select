@@ -1,3 +1,5 @@
+This project is out of date and has been replaced with https://github.com/trompamusic/DigitalScoreEdition
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
